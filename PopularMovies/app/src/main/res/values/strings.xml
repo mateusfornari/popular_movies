@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">PopularMovies</string>
+    <string name="bt_refresh_text">Try Again!</string>
+    <string name="msg_internet_required">You need to be connected to the internet!</string>
+</resources>
