@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.example.android.popularmovies.adapters.MoviesAdapter;
 import com.example.android.popularmovies.domain.Movie;
@@ -18,7 +19,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private RecyclerView mMoviesList;
     private ProgressBar mLoadingIndicator;
@@ -40,11 +41,27 @@ public class MainActivity extends AppCompatActivity {
         mMoviesList = (RecyclerView) findViewById(R.id.rv_movies_list);
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
         mRefreshButton = (Button) findViewById(R.id.bt_refresh);
+        mRefreshButton.setOnClickListener(this);
     }
 
     private void loadMovies(){
-        URL url = NetworkUtils.buildUrl(mSort);
-        new MoviesTask().execute(url);
+
+        if(NetworkUtils.isOnline(this)) {
+            URL url = NetworkUtils.buildUrl(mSort);
+            new MoviesTask().execute(url);
+        }else{
+            showErrorMessage();
+        }
+    }
+
+    private void showErrorMessage(){
+        Toast.makeText(this, getString(R.string.msg_internet_required), Toast.LENGTH_LONG).show();
+        mRefreshButton.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onClick(View v) {
+        loadMovies();
     }
 
     class MoviesTask extends AsyncTask<URL, Void, String>{
@@ -52,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             mLoadingIndicator.setVisibility(View.VISIBLE);
+            mRefreshButton.setVisibility(View.INVISIBLE);
         }
 
         @Override
@@ -69,16 +87,20 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String s) {
-            mLoadingIndicator.setVisibility(View.INVISIBLE);
-            List<Movie> movies = JsonUtils.fetchMovieList(s);
+            if(s != null && !s.isEmpty()) {
+                mLoadingIndicator.setVisibility(View.INVISIBLE);
+                List<Movie> movies = JsonUtils.fetchMovieList(s);
 
-            GridLayoutManager manager = new GridLayoutManager(getApplicationContext(), 2);
+                GridLayoutManager manager = new GridLayoutManager(getApplicationContext(), 2);
 
-            MoviesAdapter adapter = new MoviesAdapter(movies);
+                MoviesAdapter adapter = new MoviesAdapter(movies);
 
-            mMoviesList.setLayoutManager(manager);
+                mMoviesList.setLayoutManager(manager);
 
-            mMoviesList.setAdapter(adapter);
+                mMoviesList.setAdapter(adapter);
+            }else{
+                showErrorMessage();
+            }
 
         }
     }
