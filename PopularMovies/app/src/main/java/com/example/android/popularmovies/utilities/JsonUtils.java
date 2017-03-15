@@ -21,7 +21,7 @@ public class JsonUtils {
     private static final String FIELD_TITLE = "original_title";
     private static final String FIELD_SYNOPSIS = "overview";
     private static final String FIELD_RELEASE_DATE = "release_date";
-    private static final String FIELD_RATING = "vote_avarage";
+    private static final String FIELD_RATING = "vote_average";
     private static final String FIELD_POSTER_PATH = "poster_path";
 
     public static List<Movie> fetchMovieList(String json){
