@@ -23,7 +23,7 @@ public class Movie implements Parcelable{
         id = in.readInt();
         title = in.readString();
         synopsis = in.readString();
-        rating = in.readFloat();
+        rating = in.readDouble();
         releaseDate = in.readString();
         posterPath = in.readString();
     }
@@ -101,5 +101,17 @@ public class Movie implements Parcelable{
         dest.writeDouble(rating);
         dest.writeString(releaseDate);
         dest.writeString(posterPath);
+    }
+
+    @Override
+    public String toString() {
+        return "Movie{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", synopsis='" + synopsis + '\'' +
+                ", rating=" + rating +
+                ", releaseDate='" + releaseDate + '\'' +
+                ", posterPath='" + posterPath + '\'' +
+                '}';
     }
 }

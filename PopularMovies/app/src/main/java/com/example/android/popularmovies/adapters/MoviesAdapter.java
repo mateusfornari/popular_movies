@@ -9,6 +9,7 @@ import android.widget.ImageView;
 
 import com.example.android.popularmovies.R;
 import com.example.android.popularmovies.domain.Movie;
+import com.example.android.popularmovies.utilities.NetworkUtils;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -22,6 +23,8 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
     private List<Movie> movies;
 
     private Context mContext;
+
+    private OnMovieClickListener mOnMovieClickListener;
 
     public MoviesAdapter(List<Movie> movies){
         this.movies = movies;
@@ -47,27 +50,37 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
         return movies.size();
     }
 
-    class MoviesViewHolder extends RecyclerView.ViewHolder{
+    public void setOnMovieClickListener(OnMovieClickListener mOnMovieClickListener) {
+        this.mOnMovieClickListener = mOnMovieClickListener;
+    }
+
+    class MoviesViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
         private ImageView mPosterImageView;
-
-        private static final String BASE_URL = "http://image.tmdb.org/t/p/";
-
-        private static final String IMAGE_SIZE = "w185";
 
 
         public MoviesViewHolder(View itemView) {
             super(itemView);
             mPosterImageView = (ImageView) itemView.findViewById(R.id.iv_poster);
+            mPosterImageView.setOnClickListener(this);
         }
 
         public void bind(Movie movie){
-            String imageUrl = buildImageUrl(movie);
+            String imageUrl = NetworkUtils.buildImageUrl(movie);
             Picasso.with(mContext).load(imageUrl).into(mPosterImageView);
         }
 
-        private String buildImageUrl(Movie movie){
-            return BASE_URL + IMAGE_SIZE + movie.getPosterPath();
+
+
+        @Override
+        public void onClick(View v) {
+            if(mOnMovieClickListener != null) {
+                mOnMovieClickListener.onClick(movies.get(getAdapterPosition()));
+            }
         }
+    }
+
+    public interface OnMovieClickListener{
+        void onClick(Movie movie);
     }
 }

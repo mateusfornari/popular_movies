@@ -6,6 +6,8 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.util.Log;
 
+import com.example.android.popularmovies.domain.Movie;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -27,6 +29,10 @@ public class NetworkUtils {
     private static final String API_KEY = "";
 
     private static final String API_KEY_PARAMETER = "api_key";
+
+    private static final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p/";
+
+    private static final String IMAGE_SIZE = "w185";
 
     /**
      * Buid request URL
@@ -88,6 +94,10 @@ public class NetworkUtils {
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnected();
+    }
+
+    public static String buildImageUrl(Movie movie){
+        return BASE_IMAGE_URL + IMAGE_SIZE + movie.getPosterPath();
     }
 
 }
