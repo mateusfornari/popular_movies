@@ -88,6 +88,8 @@ public class NetworkUtils {
      * Check if there is internet connection
      * @param context
      * @return
+     *
+     * FROM: http://stackoverflow.com/questions/1560788/how-to-check-internet-access-on-android-inetaddress-never-times-out
      */
     public static boolean isOnline(Context context) {
         ConnectivityManager cm =
