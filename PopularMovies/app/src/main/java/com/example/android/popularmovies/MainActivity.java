@@ -95,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void showErrorMessage(){
         Toast.makeText(this, getString(R.string.msg_internet_required), Toast.LENGTH_LONG).show();
         mRefreshButton.setVisibility(View.VISIBLE);
+        mMoviesList.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -164,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if(s != null && !s.isEmpty()) {
                 mLoadingIndicator.setVisibility(View.INVISIBLE);
                 movies = JsonUtils.fetchMovieList(s);
-
+                mMoviesList.setVisibility(View.VISIBLE);
                 displayMovieList();
             }else{
                 showErrorMessage();
