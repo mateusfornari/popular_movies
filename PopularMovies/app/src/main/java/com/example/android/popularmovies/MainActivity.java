@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -26,6 +28,8 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, MoviesAdapter.OnMovieClickListener {
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
+    private static final String SORT_POPULAR = "popular";
+    private static final String SORT_TOP_RATED = "top_rated";
 
     private RecyclerView mMoviesList;
     private ProgressBar mLoadingIndicator;
@@ -33,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private List<Movie> movies;
 
-    private String mSort = "popular";
+    private String mSort = SORT_POPULAR;
 
     public static final String EXTRA_MOVIE = "movie";
 
@@ -49,7 +53,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_KEY)){
             Log.d(LOG_TAG, "Has saved bundle");
             movies = savedInstanceState.getParcelableArrayList(BUNDLE_KEY);
-            displayMovieList();
+            if(movies == null){
+                loadMovies();
+            }else {
+                displayMovieList();
+            }
         }else {
             loadMovies();
         }
@@ -106,6 +114,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.d(LOG_TAG, "onSaveInstanceState");
         outState.putParcelableArrayList(BUNDLE_KEY, (ArrayList<Movie>) movies);
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id){
+            case R.id.action_popular:
+                mSort = SORT_POPULAR;
+                loadMovies();
+                return true;
+            case R.id.action_top_rated:
+                mSort = SORT_TOP_RATED;
+                loadMovies();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     class MoviesTask extends AsyncTask<URL, Void, String>{
