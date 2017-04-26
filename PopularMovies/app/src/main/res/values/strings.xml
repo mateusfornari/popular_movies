@@ -6,4 +6,5 @@
     <string name="lbl_rating">Rating:</string>
     <string name="popular">Most Popular</string>
     <string name="top_rated">Highest Rated</string>
+    <string name="favorite">Favorite</string>
 </resources>

@@ -1,39 +1,39 @@
 package com.example.android.popularmovies;
 
 import android.content.Intent;
-import android.os.AsyncTask;
-import android.os.Parcelable;
-import android.support.v7.app.AppCompatActivity;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.android.popularmovies.adapters.MoviesAdapter;
+import com.example.android.popularmovies.databinding.ActivityMainBinding;
 import com.example.android.popularmovies.domain.Movie;
+import com.example.android.popularmovies.loaders.MoviesLoader;
+import com.example.android.popularmovies.loaders.MoviesLoaderListener;
 import com.example.android.popularmovies.utilities.JsonUtils;
 import com.example.android.popularmovies.utilities.NetworkUtils;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, MoviesAdapter.OnMovieClickListener {
+public class MainActivity extends AppCompatActivity
+        implements View.OnClickListener,
+        MoviesAdapter.OnMovieClickListener,
+        MoviesLoaderListener {
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String SORT_POPULAR = "popular";
     private static final String SORT_TOP_RATED = "top_rated";
+    private static final String SORT_FAVORITE = "favorite";
 
-    private RecyclerView mMoviesList;
-    private ProgressBar mLoadingIndicator;
-    private Button mRefreshButton;
+    private ActivityMainBinding mBinding;
 
     private List<Movie> movies;
 
@@ -46,56 +46,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        bindComponents();
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
-        if(savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_KEY)){
+        if (savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_KEY)) {
             Log.d(LOG_TAG, "Has saved bundle");
             movies = savedInstanceState.getParcelableArrayList(BUNDLE_KEY);
-            if(movies == null){
+            if (movies == null) {
                 loadMovies();
-            }else {
+            } else {
                 displayMovieList();
             }
-        }else {
+        } else {
             loadMovies();
         }
     }
 
-    private void bindComponents(){
-        mMoviesList = (RecyclerView) findViewById(R.id.rv_movies_list);
-        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
-        mRefreshButton = (Button) findViewById(R.id.bt_refresh);
-        mRefreshButton.setOnClickListener(this);
-    }
+    private void loadMovies() {
+        if (mSort.equals(SORT_FAVORITE)) {
 
-    private void loadMovies(){
-
-        if(NetworkUtils.isOnline(this)) {
-            URL url = NetworkUtils.buildUrl(mSort);
-            new MoviesTask().execute(url);
-        }else{
-            showErrorMessage();
+        } else {
+            if (NetworkUtils.isOnline(this)) {
+                LoaderManager manager = getSupportLoaderManager();
+                MoviesLoader loader = new MoviesLoader(this, this, manager);
+                loader.execute(mSort);
+            } else {
+                showErrorMessage();
+            }
         }
     }
 
-    private void displayMovieList(){
-        GridLayoutManager manager = new GridLayoutManager(getApplicationContext(), 2);
+    private void displayMovieList() {
+        int gridColumns = getResources().getInteger(R.integer.grid_columns);
+        GridLayoutManager manager = new GridLayoutManager(getApplicationContext(), gridColumns);
 
         MoviesAdapter adapter = new MoviesAdapter(movies);
 
         adapter.setOnMovieClickListener(MainActivity.this);
 
-        mMoviesList.setLayoutManager(manager);
-
-        mMoviesList.setAdapter(adapter);
+        mBinding.rvMoviesList.setLayoutManager(manager);
+        mBinding.rvMoviesList.setAdapter(adapter);
     }
 
-    private void showErrorMessage(){
+    private void showErrorMessage() {
         Toast.makeText(this, getString(R.string.msg_internet_required), Toast.LENGTH_LONG).show();
-        mRefreshButton.setVisibility(View.VISIBLE);
-        mMoviesList.setVisibility(View.INVISIBLE);
+        mBinding.btRefresh.setVisibility(View.VISIBLE);
+        mBinding.rvMoviesList.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -126,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        switch (id){
+        switch (id) {
             case R.id.action_popular:
                 mSort = SORT_POPULAR;
                 loadMovies();
@@ -135,44 +131,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mSort = SORT_TOP_RATED;
                 loadMovies();
                 return true;
+            case R.id.action_favorite:
+                mSort = SORT_FAVORITE;
+                loadMovies();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    class MoviesTask extends AsyncTask<URL, Void, String>{
-
-        @Override
-        protected void onPreExecute() {
-            mLoadingIndicator.setVisibility(View.VISIBLE);
-            mRefreshButton.setVisibility(View.INVISIBLE);
-        }
-
-        @Override
-        protected String doInBackground(URL... params) {
-
-            try {
-                return NetworkUtils.getResponseFromHttpUrl(params[0]);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            if(s != null && !s.isEmpty()) {
-                mLoadingIndicator.setVisibility(View.INVISIBLE);
-                movies = JsonUtils.fetchMovieList(s);
-                mMoviesList.setVisibility(View.VISIBLE);
-                displayMovieList();
-            }else{
-                showErrorMessage();
-            }
-
-        }
+    @Override
+    public void onStartLoading() {
+        mBinding.pbLoadingIndicator.setVisibility(View.VISIBLE);
+        mBinding.btRefresh.setVisibility(View.INVISIBLE);
     }
 
-
+    @Override
+    public void onLoadFinished(String data) {
+        if (data != null && !data.isEmpty()) {
+            mBinding.pbLoadingIndicator.setVisibility(View.INVISIBLE);
+            movies = JsonUtils.fetchMovieList(data);
+            mBinding.rvMoviesList.setVisibility(View.VISIBLE);
+            displayMovieList();
+        } else {
+            showErrorMessage();
+        }
+    }
 }

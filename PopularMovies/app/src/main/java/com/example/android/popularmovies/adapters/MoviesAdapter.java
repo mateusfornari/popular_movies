@@ -22,9 +22,9 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
 
     private List<Movie> movies;
 
-    private Context mContext;
+    protected Context mContext;
 
-    private OnMovieClickListener mOnMovieClickListener;
+    protected OnMovieClickListener mOnMovieClickListener;
 
     public MoviesAdapter(List<Movie> movies){
         this.movies = movies;
