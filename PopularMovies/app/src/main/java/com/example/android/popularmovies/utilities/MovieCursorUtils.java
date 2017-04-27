@@ -1,5 +1,6 @@
 package com.example.android.popularmovies.utilities;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 
 import com.example.android.popularmovies.domain.Movie;
@@ -25,5 +26,18 @@ public class MovieCursorUtils {
         }
 
         return movie;
+    }
+
+    public static ContentValues getContentValues(Movie movie){
+        ContentValues values = new ContentValues();
+
+        values.put(MovieEntry.COLUMN_MOVIE_ID, movie.getId());
+        values.put(MovieEntry.COLUMN_TITLE, movie.getTitle());
+        values.put(MovieEntry.COLUMN_SYNOPSIS, movie.getSynopsis());
+        values.put(MovieEntry.COLUMN_RELEASE_DATE, movie.getReleaseDate());
+        values.put(MovieEntry.COLUMN_RATING, movie.getRating());
+        values.put(MovieEntry.COLUMN_POSTER_PATH, movie.getPosterPath());
+
+        return values;
     }
 }

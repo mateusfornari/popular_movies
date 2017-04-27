@@ -1,6 +1,7 @@
 package com.example.android.popularmovies;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
@@ -13,10 +14,11 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.example.android.popularmovies.adapters.MoviesAdapter;
+import com.example.android.popularmovies.adapters.MoviesCursorAdapter;
 import com.example.android.popularmovies.databinding.ActivityMainBinding;
 import com.example.android.popularmovies.domain.Movie;
+import com.example.android.popularmovies.loaders.FavoriteMoviesLoader;
 import com.example.android.popularmovies.loaders.MoviesLoader;
-import com.example.android.popularmovies.loaders.MoviesLoaderListener;
 import com.example.android.popularmovies.utilities.JsonUtils;
 import com.example.android.popularmovies.utilities.NetworkUtils;
 
@@ -26,7 +28,8 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity
         implements View.OnClickListener,
         MoviesAdapter.OnMovieClickListener,
-        MoviesLoaderListener {
+        MoviesLoader.LoadMoviesListener,
+        FavoriteMoviesLoader.FavoriteMoviesListener{
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String SORT_POPULAR = "popular";
@@ -43,11 +46,21 @@ public class MainActivity extends AppCompatActivity
 
     private static final String BUNDLE_KEY = "movies_bundle";
 
+    private MoviesCursorAdapter mMoviesCursorAdapter;
+    private MoviesAdapter mMoviesAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+
+
+        mMoviesCursorAdapter = new MoviesCursorAdapter(null);
+        mMoviesCursorAdapter.setOnMovieClickListener(this);
+
+        mMoviesAdapter = new MoviesAdapter(movies);
+        mMoviesAdapter.setOnMovieClickListener(this);
 
         if (savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_KEY)) {
             Log.d(LOG_TAG, "Has saved bundle");
@@ -55,7 +68,8 @@ public class MainActivity extends AppCompatActivity
             if (movies == null) {
                 loadMovies();
             } else {
-                displayMovieList();
+                displayMovieList(mMoviesAdapter);
+                mMoviesAdapter.swapMovies(movies);
             }
         } else {
             loadMovies();
@@ -63,24 +77,23 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void loadMovies() {
+        LoaderManager manager = getSupportLoaderManager();
         if (mSort.equals(SORT_FAVORITE)) {
-
+            FavoriteMoviesLoader loader = new FavoriteMoviesLoader(this, manager);
+            loader.loadFavoriteMovies(this);
         } else {
             if (NetworkUtils.isOnline(this)) {
-                LoaderManager manager = getSupportLoaderManager();
-                MoviesLoader loader = new MoviesLoader(this, this, manager);
-                loader.execute(mSort);
+                MoviesLoader loader = new MoviesLoader(this, manager);
+                loader.loadMovies(mSort, this);
             } else {
                 showErrorMessage();
             }
         }
     }
 
-    private void displayMovieList() {
+    private void displayMovieList(MoviesAdapter adapter) {
         int gridColumns = getResources().getInteger(R.integer.grid_columns);
         GridLayoutManager manager = new GridLayoutManager(getApplicationContext(), gridColumns);
-
-        MoviesAdapter adapter = new MoviesAdapter(movies);
 
         adapter.setOnMovieClickListener(MainActivity.this);
 
@@ -91,6 +104,12 @@ public class MainActivity extends AppCompatActivity
     private void showErrorMessage() {
         Toast.makeText(this, getString(R.string.msg_internet_required), Toast.LENGTH_LONG).show();
         mBinding.btRefresh.setVisibility(View.VISIBLE);
+        mBinding.rvMoviesList.setVisibility(View.INVISIBLE);
+    }
+
+    private void showCursorErrorMessage() {
+        Toast.makeText(this, getString(R.string.msg_no_favorite), Toast.LENGTH_LONG).show();
+        mBinding.btRefresh.setVisibility(View.INVISIBLE);
         mBinding.rvMoviesList.setVisibility(View.INVISIBLE);
     }
 
@@ -139,21 +158,35 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+
     @Override
-    public void onStartLoading() {
+    public void onStartLoadingMovies() {
         mBinding.pbLoadingIndicator.setVisibility(View.VISIBLE);
         mBinding.btRefresh.setVisibility(View.INVISIBLE);
     }
 
     @Override
-    public void onLoadFinished(String data) {
+    public void onMoviesLoaded(String data) {
         if (data != null && !data.isEmpty()) {
             mBinding.pbLoadingIndicator.setVisibility(View.INVISIBLE);
             movies = JsonUtils.fetchMovieList(data);
             mBinding.rvMoviesList.setVisibility(View.VISIBLE);
-            displayMovieList();
+            mMoviesAdapter.swapMovies(movies);
+            displayMovieList(mMoviesAdapter);
         } else {
             showErrorMessage();
+        }
+    }
+
+    @Override
+    public void onFavoriteMoviesLoaded(Cursor cursor) {
+        if(cursor != null){
+            mBinding.pbLoadingIndicator.setVisibility(View.INVISIBLE);
+            mBinding.rvMoviesList.setVisibility(View.VISIBLE);
+            mMoviesCursorAdapter.swapCursor(cursor);
+            displayMovieList(mMoviesCursorAdapter);
+        }else{
+            showCursorErrorMessage();
         }
     }
 }

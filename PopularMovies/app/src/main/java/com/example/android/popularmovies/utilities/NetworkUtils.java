@@ -1,5 +1,6 @@
 package com.example.android.popularmovies.utilities;
 
+import android.content.ContentUris;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -34,6 +35,9 @@ public class NetworkUtils {
 
     private static final String IMAGE_SIZE = "w185";
 
+    private static final String PATH_TRAILERS = "videos";
+    private static final String PATH_REVIEWS = "reviews";
+
     /**
      * Buid request URL
      * @param sort Sort method "popular" or "top_rated"
@@ -43,6 +47,44 @@ public class NetworkUtils {
         Uri uri = Uri.parse(BASE_URL)
                 .buildUpon()
                 .appendPath(sort)
+                .appendQueryParameter(API_KEY_PARAMETER, API_KEY)
+                .build();
+
+        Log.d(LOG_TAG, "URI: " + uri.toString());
+
+        URL url = null;
+        try {
+            url = new URL(uri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        return url;
+    }
+
+    public static URL buildTrailersUrl(int id){
+        Uri uri = ContentUris.withAppendedId(Uri.parse(BASE_URL), id)
+                .buildUpon()
+                .appendPath(PATH_TRAILERS)
+                .appendQueryParameter(API_KEY_PARAMETER, API_KEY)
+                .build();
+
+        Log.d(LOG_TAG, "URI: " + uri.toString());
+
+        URL url = null;
+        try {
+            url = new URL(uri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        return url;
+    }
+
+    public static URL buildReviewsUrl(int id){
+        Uri uri = ContentUris.withAppendedId(Uri.parse(BASE_URL), id)
+                .buildUpon()
+                .appendPath(PATH_REVIEWS)
                 .appendQueryParameter(API_KEY_PARAMETER, API_KEY)
                 .build();
 

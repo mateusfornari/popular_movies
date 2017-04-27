@@ -1,7 +1,9 @@
 package com.example.android.popularmovies.adapters;
 
 import android.database.Cursor;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.example.android.popularmovies.domain.Movie;
 import com.example.android.popularmovies.utilities.MovieCursorUtils;
@@ -20,6 +22,13 @@ public class MoviesCursorAdapter extends MoviesAdapter {
     }
 
     @Override
+    public MoviesCursorViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        RecyclerView.ViewHolder holder = super.onCreateViewHolder(parent, viewType);
+        MoviesCursorViewHolder cursorViewHolder = new MoviesCursorViewHolder(holder.itemView);
+        return cursorViewHolder;
+    }
+
+    @Override
     public void onBindViewHolder(MoviesViewHolder holder, int position) {
         Movie movie = MovieCursorUtils.movieFromCursor(mCursor, position);
         if (movie != null){
@@ -29,6 +38,8 @@ public class MoviesCursorAdapter extends MoviesAdapter {
 
     @Override
     public int getItemCount() {
+        if(mCursor == null)
+            return 0;
         return mCursor.getCount();
     }
 

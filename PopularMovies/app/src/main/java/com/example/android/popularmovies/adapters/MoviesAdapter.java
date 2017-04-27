@@ -1,6 +1,7 @@
 package com.example.android.popularmovies.adapters;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,7 +48,14 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
 
     @Override
     public int getItemCount() {
+        if(movies == null)
+            return 0;
         return movies.size();
+    }
+
+    public void swapMovies(List<Movie> movies){
+        this.movies = movies;
+        notifyDataSetChanged();
     }
 
     public void setOnMovieClickListener(OnMovieClickListener mOnMovieClickListener) {

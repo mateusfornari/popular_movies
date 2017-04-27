@@ -61,6 +61,18 @@ public class MovieContentProvider extends ContentProvider {
                         null,
                         sortOrder);
                 break;
+            case MOVIES_WITH_ID:
+                String id = uri.getPathSegments().get(1);
+                String mSelection = MovieContract.MovieEntry.COLUMN_MOVIE_ID + "=?";
+                String[] mArgs = new String[]{id};
+                retCursor = db.query(MovieContract.MovieEntry.TABLE_NAME,
+                        projection,
+                        mSelection,
+                        mArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown URI: " + uri);
         }
@@ -115,7 +127,7 @@ public class MovieContentProvider extends ContentProvider {
         switch (match){
             case MOVIES_WITH_ID:
                 String id = uri.getPathSegments().get(1);
-                String mSelection = "_id=?";
+                String mSelection = MovieContract.MovieEntry.COLUMN_MOVIE_ID + "=?";
                 String[] mArgs = new String[]{id};
                 rowsDeleted = db.delete(MovieContract.MovieEntry.TABLE_NAME, mSelection, mArgs);
                 break;
