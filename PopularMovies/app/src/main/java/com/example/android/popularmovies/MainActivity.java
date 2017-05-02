@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity
     public static final String EXTRA_MOVIE = "movie";
 
     private static final String BUNDLE_KEY = "movies_bundle";
+    private static final String BUNDLE_SORT_KEY = "sort_bundle";
 
     private MoviesCursorAdapter mMoviesCursorAdapter;
     private MoviesAdapter mMoviesAdapter;
@@ -52,9 +53,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.d(LOG_TAG, "onCreate");
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
+        mBinding.btRefresh.setOnClickListener(this);
 
         mMoviesCursorAdapter = new MoviesCursorAdapter(null);
         mMoviesCursorAdapter.setOnMovieClickListener(this);
@@ -62,21 +64,18 @@ public class MainActivity extends AppCompatActivity
         mMoviesAdapter = new MoviesAdapter(movies);
         mMoviesAdapter.setOnMovieClickListener(this);
 
-        if (savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_KEY)) {
-            Log.d(LOG_TAG, "Has saved bundle");
-            movies = savedInstanceState.getParcelableArrayList(BUNDLE_KEY);
-            if (movies == null) {
-                loadMovies();
-            } else {
-                displayMovieList(mMoviesAdapter);
-                mMoviesAdapter.swapMovies(movies);
-            }
+        if (savedInstanceState != null) {
+            Log.d(LOG_TAG, "There is saved instance state");
         } else {
+            Log.d(LOG_TAG, "There is no saved instance state");
             loadMovies();
         }
+
     }
 
+
     private void loadMovies() {
+        Log.d(LOG_TAG, "loadMovies");
         LoaderManager manager = getSupportLoaderManager();
         if (mSort.equals(SORT_FAVORITE)) {
             FavoriteMoviesLoader loader = new FavoriteMoviesLoader(this, manager);
@@ -129,7 +128,23 @@ public class MainActivity extends AppCompatActivity
     protected void onSaveInstanceState(Bundle outState) {
         Log.d(LOG_TAG, "onSaveInstanceState");
         outState.putParcelableArrayList(BUNDLE_KEY, (ArrayList<Movie>) movies);
+        outState.putString(BUNDLE_SORT_KEY, mSort);
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        Log.d(LOG_TAG, "onRestoreInstanceState");
+        mSort = savedInstanceState.getString(BUNDLE_SORT_KEY);
+        movies = savedInstanceState.getParcelableArrayList(BUNDLE_KEY);
+        if (mSort.equals(SORT_FAVORITE) || movies == null) {
+            displayMovieList(mMoviesCursorAdapter);
+            loadMovies();
+        } else {
+            displayMovieList(mMoviesAdapter);
+            mMoviesAdapter.swapMovies(movies);
+        }
     }
 
     @Override
@@ -141,6 +156,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+        Log.d(LOG_TAG, "Option selected " + id);
         switch (id) {
             case R.id.action_popular:
                 mSort = SORT_POPULAR;
@@ -180,6 +196,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onFavoriteMoviesLoaded(Cursor cursor) {
+        Log.d(LOG_TAG, "onFavoriteMoviesLoaded");
         if(cursor != null){
             mBinding.pbLoadingIndicator.setVisibility(View.INVISIBLE);
             mBinding.rvMoviesList.setVisibility(View.VISIBLE);

@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.example.android.popularmovies.domain.Movie;
+import com.example.android.popularmovies.domain.Video;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +38,8 @@ public class NetworkUtils {
 
     private static final String PATH_TRAILERS = "videos";
     private static final String PATH_REVIEWS = "reviews";
+
+    private static final String YOUTUBE_BASE_URL = "https://youtu.be/";
 
     /**
      * Buid request URL
@@ -98,6 +101,17 @@ public class NetworkUtils {
         }
 
         return url;
+    }
+
+    public static Uri buildYutubeUri(Video video){
+        if(video.getSite().toLowerCase().equals("youtube")){
+            Uri uri = Uri.parse(YOUTUBE_BASE_URL)
+                    .buildUpon()
+                    .appendPath(video.getKey())
+                    .build();
+            return uri;
+        }
+        return null;
     }
 
     /**

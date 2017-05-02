@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 
 import com.example.android.popularmovies.utilities.NetworkUtils;
 
@@ -18,6 +19,8 @@ import java.net.URL;
 public class MoviesLoader implements LoaderManager.LoaderCallbacks<String>{
 
     private Context context;
+
+    private static final String LOG_TAG = "MoviesLoader";
 
     private LoadMoviesListener loadMoviesListener;
     private LoadTrailersListener loadTrailersListener;
@@ -38,28 +41,32 @@ public class MoviesLoader implements LoaderManager.LoaderCallbacks<String>{
         this.loaderManager = loaderManager;
     }
 
-    private void initLoader(int id){
+    private Loader<String> initLoader(int id){
         Loader<String> loader = loaderManager.getLoader(id);
         if(loader == null){
-            loaderManager.initLoader(id, null, this);
+            loader = loaderManager.initLoader(id, null, this);
         }else{
-            loaderManager.restartLoader(id, null, this);
+            loader = loaderManager.restartLoader(id, null, this);
         }
+        return loader;
     }
 
     public void loadMovies(String sort, LoadMoviesListener listener){
+        Log.d(LOG_TAG, "loadMovies");
         this.sort = sort;
         this.loadMoviesListener = listener;
-        initLoader(LOAD_MOVIES_ID);
+        Loader<String> loader = initLoader(LOAD_MOVIES_ID);
     }
 
     public void loadTrailers(int id, LoadTrailersListener listener){
+        Log.d(LOG_TAG, "loadTrailers");
         this.movieId = id;
         this.loadTrailersListener = listener;
         initLoader(LOAD_TRAILERS_ID);
     }
 
     public void loadReviews(int id, LoadReviewsListener listener){
+        Log.d(LOG_TAG, "loadReviews");
         this.movieId = id;
         this.loadReviewsListener = listener;
         initLoader(LOAD_REVIEWS_ID);
@@ -121,6 +128,7 @@ public class MoviesLoader implements LoaderManager.LoaderCallbacks<String>{
         switch (loader.getId()) {
             case LOAD_MOVIES_ID:
                 callbackOnMoviesLoaded(data);
+                loaderManager.destroyLoader(loader.getId());
                 break;
             case LOAD_REVIEWS_ID:
                 callbackOnReviewsLoaded(data);
@@ -133,7 +141,7 @@ public class MoviesLoader implements LoaderManager.LoaderCallbacks<String>{
 
     @Override
     public void onLoaderReset(Loader<String> loader) {
-
+        Log.d(LOG_TAG, "onLoaderReset");
     }
 
     static class LoadMovies extends AsyncTaskLoader<String>{
@@ -147,6 +155,7 @@ public class MoviesLoader implements LoaderManager.LoaderCallbacks<String>{
 
         @Override
         protected void onStartLoading() {
+            Log.d(LOG_TAG, "onStartLoading LoadMovies");
             super.onStartLoading();
             loader.callbackOnStartLoadingMovies();
             forceLoad();

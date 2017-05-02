@@ -8,4 +8,8 @@
     <string name="popular">Most Popular</string>
     <string name="top_rated">Highest Rated</string>
     <string name="favorite">Favorite</string>
+    <string name="bt_mark_favorite">Mark as Favorite</string>
+    <string name="bt_unmark_favorite">Unmark as Favorite</string>
+    <string name="lbl_trailers">Trailers</string>
+    <string name="lbl_reviews">Reviews</string>
 </resources>
